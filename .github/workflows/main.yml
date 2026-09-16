@@ -2,8 +2,8 @@ name: AI Daily Brief
 
 on:
   schedule:
-    # 03:30 UTC == 09:00 IST. GitHub cron only accepts UTC.
-    - cron: "30 3 * * *"
+    # Every Monday at 09:00 IST = 03:30 UTC.
+    - cron: "30 3 * * 1"
   workflow_dispatch:        # lets you trigger a manual run from the Actions tab
 
 jobs:
