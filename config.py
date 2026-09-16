@@ -1,63 +1,22 @@
-"""Central configuration. Sensitive values can come from .env or config.json."""
+"""Central configuration. Everything sensitive comes from environment variables."""
 
-import json
 import os
 from zoneinfo import ZoneInfo
 
 from dotenv import load_dotenv
 
-load_dotenv()
-
-
-def _load_json_config() -> dict:
-    cfg_path = os.path.join(os.path.dirname(__file__), "config.json")
-    if not os.path.exists(cfg_path):
-        return {}
-    try:
-        with open(cfg_path, "r", encoding="utf-8") as handle:
-            data = json.load(handle)
-        return data if isinstance(data, dict) else {}
-    except (TypeError, ValueError, OSError):
-        return {}
-
-
-def _env_example_values() -> dict[str, str]:
-    values: dict[str, str] = {}
-    example_path = os.path.join(os.path.dirname(__file__), ".env.example")
-    if not os.path.exists(example_path):
-        return values
-
-    with open(example_path, "r", encoding="utf-8") as handle:
-        for raw_line in handle:
-            line = raw_line.strip()
-            if not line or line.startswith("#") or "=" not in line:
-                continue
-            key, value = line.split("=", 1)
-            values[key.strip()] = value.strip()
-    return values
+# Load the project .env file even when the same variables already exist in the
+# OS environment. This prevents stale shell/session values from overriding the
+# repo's intended credentials.
+load_dotenv(override=True)
 
 
 def _require(name: str) -> str:
-    json_cfg = _load_json_config()
-    value = ""
-
-    if name == "GROQ_API_KEY" and json_cfg.get("GROQ_API_KEY"):
-        value = str(json_cfg["GROQ_API_KEY"]).strip()
-        os.environ[name] = value
-    else:
-        value = os.getenv(name, "").strip()
-
+    value = os.getenv(name, "").strip()
     if not value:
         raise RuntimeError(
             f"Missing required environment variable: {name}. "
             "Copy .env.example to .env and fill it in."
-        )
-
-    example_value = _env_example_values().get(name)
-    if example_value and value == example_value and name != "GROQ_API_KEY":
-        raise RuntimeError(
-            f"{name} still contains the sample value from .env.example. "
-            f"Replace it with a real key from the provider and save .env."
         )
     return value
 
