@@ -123,6 +123,35 @@ def build_html(digest: dict, now: datetime) -> str:
         else ""
     )
 
+    new_since_last = digest.get("new_since_last") or []
+    changes_markers = []
+    for story in new_since_last[:3]:
+        url = _esc(story.get("url") or "")
+        title = _esc(story.get("title") or "Untitled")
+        changes_markers.append(
+            f"<div style=\"font:400 14px/1.6 -apple-system,'Segoe UI',Helvetica,Arial,sans-serif;color:#2c333a;padding-bottom:8px;\">&bull; <a href=\"{url}\" style=\"color:#1a4d8f;text-decoration:none;\">{title}</a></div>"
+        )
+    changes_block = (
+        f"""
+      <tr>
+        <td style="padding:18px 32px 0 32px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+                 style="background:#eef5ff;border:1px solid #d9e7ff;border-radius:6px;">
+            <tr>
+              <td style="padding:18px 20px;">
+                <div style="font:700 11px/1 -apple-system,'Segoe UI',Helvetica,Arial,
+                            sans-serif;letter-spacing:.11em;text-transform:uppercase;
+                            color:#1a4d8f;padding-bottom:12px;">What changed since last email</div>
+                {''.join(changes_markers)}
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>"""
+        if changes_markers
+        else ""
+    )
+
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -132,7 +161,7 @@ def build_html(digest: dict, now: datetime) -> str:
 </head>
 <body style="margin:0;padding:0;background:#eceff2;">
   <div style="display:none;max-height:0;overflow:hidden;opacity:0;">
-    {len(digest['stories'])} developments in AI from the last 24 hours.
+    {len(digest['stories'])} developments in AI from the last 7 days.
   </div>
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
          style="background:#eceff2;padding:28px 12px;">
@@ -154,6 +183,7 @@ def build_html(digest: dict, now: datetime) -> str:
             </td>
           </tr>
           {overview_block}
+          {changes_block}
           <tr><td style="height:12px;"></td></tr>
           {stories_html}
           <tr>
@@ -182,6 +212,15 @@ def build_plaintext(digest: dict, now: datetime) -> str:
     ]
     if digest.get("headline_summary"):
         lines += ["TODAY IN BRIEF", digest["headline_summary"], "", "-" * 58, ""]
+
+    new_since_last = digest.get("new_since_last") or []
+    if new_since_last:
+        lines += ["WHAT CHANGED SINCE LAST EMAIL", ""]
+        for story in new_since_last[:3]:
+            title = story.get("title") or "Untitled"
+            url = story.get("url") or ""
+            lines += [f"- {title}", f"  {url}", ""]
+        lines += ["-" * 58, ""]
 
     for i, s in enumerate(digest["stories"], start=1):
         lines += [

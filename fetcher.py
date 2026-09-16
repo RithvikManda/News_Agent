@@ -12,6 +12,24 @@ except ImportError:  # pragma: no cover - supports the flat-file layout used her
 
 log = logging.getLogger(__name__)
 
+_TRUSTED_DOMAINS = {
+    "openai.com",
+    "anthropic.com",
+    "google.com",
+    "deepmind.google",
+    "meta.com",
+    "microsoft.com",
+    "huggingface.co",
+    "arxiv.org",
+    "nature.com",
+    "github.com",
+    "news.ycombinator.com",
+    "techcrunch.com",
+    "venturebeat.com",
+    "reuters.com",
+    "bloomberg.com",
+}
+
 
 def _domain(url: str) -> str:
     try:
@@ -20,15 +38,46 @@ def _domain(url: str) -> str:
         return ""
 
 
+def _quality_score(url: str, source: str) -> float:
+    host = (source or _domain(url) or "").lower()
+    score = 0.0
+
+    if any(domain in host for domain in _TRUSTED_DOMAINS):
+        score += 0.9
+    if any(domain in host for domain in ("blog", "news", "tech", "research")):
+        score += 0.15
+    if host in config.BLOCKED_DOMAINS:
+        score -= 2.0
+    if host in {"x.com", "twitter.com", "linkedin.com"}:
+        score -= 0.2
+    if "/ai/" in url.lower() or "/research/" in url.lower() or "/blog/" in url.lower():
+        score += 0.15
+    return score
+
+
+def _topic_weight(query: str) -> float:
+    for text, weight in config.TOPIC_WEIGHTS.items():
+        if text.lower() in query.lower():
+            return weight
+    return 1.0
+
+
 def _normalize(result: dict, query: str) -> dict:
+    url = (result.get("url") or "").strip()
+    source = _domain(url)
+    score = float(result.get("score") or 0.0)
+    quality = _quality_score(url, source)
+    topic_weight = _topic_weight(query)
     return {
         "title": (result.get("title") or "").strip(),
-        "url": (result.get("url") or "").strip(),
+        "url": url,
         "content": (result.get("content") or "").strip(),
         "published": result.get("published_date") or "",
-        "score": float(result.get("score") or 0.0),
-        "source": _domain(result.get("url") or ""),
+        "score": score * topic_weight + quality,
+        "source": source,
         "query": query,
+        "quality_score": quality,
+        "topic_weight": topic_weight,
     }
 
 

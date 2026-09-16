@@ -7,10 +7,12 @@ Usage:
 """
 
 import argparse
+import json
 import logging
 import sys
 import time
 from datetime import datetime
+from pathlib import Path
 
 try:
     from src import config, emailer, fetcher, summarizer
@@ -28,6 +30,35 @@ logging.basicConfig(
 log = logging.getLogger("ai-brief")
 
 MAX_ATTEMPTS = 3
+STATE_PATH = Path(__file__).with_name(".last_digest.json")
+
+
+def _find_new_since_last(current_digest: dict, previous_digest: dict | None) -> list[dict]:
+    if not previous_digest:
+        return current_digest.get("stories", [])
+
+    previous_urls = {story.get("url") for story in previous_digest.get("stories", []) if story.get("url")}
+    return [story for story in current_digest.get("stories", []) if story.get("url") not in previous_urls]
+
+
+def _load_last_digest() -> dict | None:
+    if not STATE_PATH.exists():
+        return None
+    try:
+        with STATE_PATH.open("r", encoding="utf-8") as handle:
+            data = json.load(handle)
+        return data if isinstance(data, dict) else None
+    except (OSError, ValueError, TypeError):
+        return None
+
+
+def _save_last_digest(digest: dict) -> None:
+    payload = {
+        "headline_summary": digest.get("headline_summary", ""),
+        "stories": digest.get("stories", []),
+    }
+    with STATE_PATH.open("w", encoding="utf-8") as handle:
+        json.dump(payload, handle, ensure_ascii=False, indent=2)
 
 
 def run_once(dry_run: bool = False) -> int:
@@ -43,6 +74,10 @@ def run_once(dry_run: bool = False) -> int:
     if not digest["stories"]:
         log.warning("Summarizer produced no usable stories.")
         return 1
+
+    previous = _load_last_digest()
+    digest["new_since_last"] = _find_new_since_last(digest, previous)
+    _save_last_digest(digest)
 
     if dry_run:
         with open("preview.html", "w", encoding="utf-8") as handle:

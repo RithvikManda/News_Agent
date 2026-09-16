@@ -52,6 +52,14 @@ LOOKBACK_DAYS = int(os.getenv("LOOKBACK_DAYS", "7"))
 RESULTS_PER_QUERY = int(os.getenv("RESULTS_PER_QUERY", "6"))
 MAX_STORIES_IN_EMAIL = int(os.getenv("MAX_STORIES_IN_EMAIL", "10"))
 
+TOPIC_WEIGHTS = {
+    "new LLM model releases inference optimizations and API changes": 1.6,
+    "OpenAI Anthropic Google DeepMind Meta AI platform launches SDKs and developer tooling": 1.5,
+    "RAG embeddings vector databases agents evals prompt engineering guardrails": 1.55,
+    "AI infrastructure GPUs inference serving cost optimization deployment patterns": 1.35,
+    "AI security governance compliance model evaluation and industry standards": 1.5,
+}
+
 # Each query targets a different slice of the generative AI engineering stack so
 # the weekly brief covers the topics a platform/AI engineer actually tracks.
 SEARCH_QUERIES = [
