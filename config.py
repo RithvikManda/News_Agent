@@ -48,7 +48,7 @@ GROQ_FALLBACK_MODELS = [
 
 # --- News search ----------------------------------------------------------
 TIMEZONE = ZoneInfo(os.getenv("TIMEZONE", "Asia/Kolkata"))
-LOOKBACK_DAYS = int(os.getenv("LOOKBACK_DAYS", "1"))
+LOOKBACK_DAYS = int(os.getenv("LOOKBACK_DAYS", "7"))
 RESULTS_PER_QUERY = int(os.getenv("RESULTS_PER_QUERY", "6"))
 MAX_STORIES_IN_EMAIL = int(os.getenv("MAX_STORIES_IN_EMAIL", "10"))
 
