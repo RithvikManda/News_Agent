@@ -52,14 +52,14 @@ LOOKBACK_DAYS = int(os.getenv("LOOKBACK_DAYS", "1"))
 RESULTS_PER_QUERY = int(os.getenv("RESULTS_PER_QUERY", "6"))
 MAX_STORIES_IN_EMAIL = int(os.getenv("MAX_STORIES_IN_EMAIL", "10"))
 
-# Each query targets a different slice of the AI world so the digest is not
-# ten articles about the same launch.
+# Each query targets a different slice of the generative AI engineering stack so
+# the weekly brief covers the topics a platform/AI engineer actually tracks.
 SEARCH_QUERIES = [
-    "latest AI model releases and launches",
-    "OpenAI Anthropic Google DeepMind Meta AI announcements",
-    "new AI developer tools frameworks and open source releases",
-    "AI research breakthroughs and notable papers",
-    "AI industry funding acquisitions and policy news",
+    "new LLM model releases inference optimizations and API changes",
+    "OpenAI Anthropic Google DeepMind Meta AI platform launches SDKs and developer tooling",
+    "RAG embeddings vector databases agents evals prompt engineering guardrails",
+    "AI infrastructure GPUs inference serving cost optimization deployment patterns",
+    "AI security governance compliance model evaluation and industry standards",
 ]
 
 # Aggregators and low-signal domains get filtered out.
