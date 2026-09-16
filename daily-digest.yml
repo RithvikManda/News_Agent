@@ -1,0 +1,34 @@
+name: AI Daily Brief
+
+on:
+  schedule:
+    # 03:30 UTC == 09:00 IST. GitHub cron only accepts UTC.
+    - cron: "30 3 * * *"
+  workflow_dispatch:        # lets you trigger a manual run from the Actions tab
+
+jobs:
+  send-digest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Send digest
+        env:
+          TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
+          GROQ_API_KEY:   ${{ secrets.GROQ_API_KEY }}
+          SMTP_HOST:      ${{ secrets.SMTP_HOST }}
+          SMTP_PORT:      ${{ secrets.SMTP_PORT }}
+          SMTP_USER:      ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD:  ${{ secrets.SMTP_PASSWORD }}
+          RECIPIENTS:     ${{ secrets.RECIPIENTS }}
+          TIMEZONE:       Asia/Kolkata
+        run: python main.py
